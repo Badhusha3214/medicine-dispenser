@@ -93,7 +93,7 @@
                         Compartment: ${med.compartment_number}<br>
                         Time: ${med.time}<br>
                         Count: ${med.count}<br>
-                        <button onclick="deleteMedication(${med.id})">Delete</button>
+                        <button onclick="deleteMedication(\`${med.id}\`)">Delete</button>
                     `;
                     medicationsList.appendChild(medDiv);
                 });

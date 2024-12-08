@@ -171,14 +171,15 @@ app.get('/format-command', (req, res) => {
     console.log('\n=== Format Command Request ===');
     console.log('Timestamp:', new Date().toISOString());
 
-    // Get current time in HH:mm format
+    // Get current time in IST (UTC+5:30)
     const currentTime = new Date().toLocaleTimeString('en-US', { 
         hour12: false, 
         hour: '2-digit', 
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata'  // Set timezone to IST
     });
 
-    console.log('Current time:', currentTime);
+    console.log('Current time (IST):', currentTime);
 
     db.get('SELECT compartment_number, count, time FROM medications WHERE time = ?', [currentTime], (err, row) => {
         if (err) {
