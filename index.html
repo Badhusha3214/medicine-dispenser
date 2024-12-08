@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+        .medication {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Medication Tracker</h1>
+    <form id="medicationForm">
+        <input type="text" id="medName" placeholder="Medication Name" required>
+        <input type="number" id="compartmentNumber" placeholder="Compartment Number" required min="1">
+        <input type="time" id="time" required>
+        <input type="number" id="count" placeholder="Count" required min="1">
+        <button type="submit">Submit Medication</button>
+    </form>
+    <div id="status"></div>
+    <div id="medicationsList"></div>
+
+    <script>
+        document.getElementById('medicationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                medName: document.getElementById('medName').value,
+                compartmentNumber: document.getElementById('compartmentNumber').value,
+                time: document.getElementById('time').value,
+                count: document.getElementById('count').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3001/submit-medication', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                const statusDiv = document.getElementById('status');
+                if (response.ok) {
+                    statusDiv.textContent = 'Medication submitted successfully!';
+                    statusDiv.style.color = 'green';
+                    fetchMedications(); // Refresh the list after submission
+                } else {
+                    statusDiv.textContent = 'Error: ' + result.message;
+                    statusDiv.style.color = 'red';
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.textContent = 'Network error. Please try again.';
+                statusDiv.style.color = 'red';
+            }
+        });
+
+        async function fetchMedications() {
+            try {
+                const response = await fetch('http://localhost:3001/medications');
+                const medications = await response.json();
+                const medicationsList = document.getElementById('medicationsList');
+                medicationsList.innerHTML = '';
+
+                medications.forEach(med => {
+                    const medDiv = document.createElement('div');
+                    medDiv.className = 'medication';
+                    medDiv.innerHTML = `
+                        <strong>${med.med_name}</strong><br>
+                        Compartment: ${med.compartment_number}<br>
+                        Time: ${med.time}<br>
+                        Count: ${med.count}<br>
+                        <button onclick="deleteMedication(${med.id})">Delete</button>
+                    `;
+                    medicationsList.appendChild(medDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching medications:', error);
+            }
+        }
+
+        async function deleteMedication(id) {
+            try {
+                const response = await fetch(`http://localhost:3001/medications/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Medication deleted successfully');
+                    fetchMedications(); // Refresh the list after deletion
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting medication:', error);
+            }
+        }
+
+        // Fetch medications on page load
+        fetchMedications();
+    </script>
+</body>
+</html>
